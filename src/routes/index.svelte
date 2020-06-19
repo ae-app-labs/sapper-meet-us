@@ -1,3 +1,34 @@
+<script context="module">
+    export function preload(page) {
+        return this.fetch('https://meetus-76f91.firebaseio.com/meetups.json')
+            .then(res => {
+                if(!res.ok){
+                    throw new Error('Fetching failed')
+                }
+                return res.json()
+            })
+            .then(data => {
+                const loadedMeetps = []
+                console.log(data)
+                for(const key in data){
+                    loadedMeetps.push({
+                        ...data[key],
+                        id: key
+                    })
+                }
+                return {fetchedMeetups:loadedMeetps}
+                //meetups.setMeetups(loadedMeetps.reverse())
+                //isLoading = false
+            })
+            .catch(err => {
+                isLoading = false
+                error = err
+                console.log(err)
+                this.error(500, 'Could not fetch meetups')
+            })
+    }
+</script>
+
 <script>
     import {createEventDispatcher, onMount, onDestroy} from 'svelte'
     import { scale } from "svelte/transition";
@@ -10,60 +41,25 @@
     import LoadingSpinner from "../components/ui/LoadingSpinner.svelte";
     import meetups from '../meetup-store.js'
 
-    const dispatch = createEventDispatcher()
+    export let fetchedMeetups
 
     let editMode = null
     let editedId = null
     let isLoading = true
     let error = null
-    let favsOnly = false;
-    let fetchedMeetups = []
+    let favsOnly = false
 
     $: filteredMeetups = favsOnly ? fetchedMeetups.filter( i => i.isFavourite) : fetchedMeetups
+
+    const dispatch = createEventDispatcher()
 
     const setFilter = (event) => {
         favsOnly = event.detail === 1
     }
 
-    let unsubscribe
-
-    onDestroy( () => {
-        if(unsubscribe){
-            unsubscribe()
-        }
-    })
-
-
     onMount( () => {
-        isLoading = true
-        unsubscribe = meetups.subscribe( items => fetchedMeetups = items )
-
-        fetch('https://meetus-76f91.firebaseio.com/meetups.json')
-        .then(res => {
-            if(!res.ok){
-                throw new Error('Fetching failed')
-            }
-            return res.json()
-        })
-        .then(data => {
-            const loadedMeetps = []
-            console.log(data)
-            for(const key in data){
-                loadedMeetps.push({
-                    ...data[key],
-                    id: key
-                })
-            }
-
-            meetups.setMeetups(loadedMeetps.reverse())
-            isLoading = false
-        })
-        .catch(err => {
-            isLoading = false
-            error = err
-            console.log(err)
-        })
-        
+        meetups.setMeetups(fetchedMeetups)    
+        isLoading = false    
     })
 
     const saveMeetup = (event) => {

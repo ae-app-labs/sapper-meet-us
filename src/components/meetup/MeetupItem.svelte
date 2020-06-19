@@ -35,7 +35,7 @@
     export let imageUrl
     export let description
     export let address
-    //export let contact
+    export let contact
     export let isFav
 </script>
 
@@ -69,14 +69,14 @@
     margin: 0.5rem 0;
     font-family: "Roboto Slab", sans-serif;
   }
-
+/*
   h1.is-favorite {
     background: #01a129;
     color: white;
     padding: 0 0.5rem;
     border-radius: 5px;
   }
-
+*/
   h2 {
     font-size: 1rem;
     color: #808080;
@@ -112,6 +112,7 @@
     </div>
     <div class="content">
         <p>{description}</p>
+        <p>{contact}</p>
     </div>
     <footer>
         <Button mode="outline" type="button" on:click={ () => { dispatch('edit', id); console.log('Edit clicked for ' + id) } }>
