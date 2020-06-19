@@ -9,14 +9,13 @@
             })
             .then(data => {
                 const loadedMeetps = []
-                console.log(data)
                 for(const key in data){
                     loadedMeetps.push({
                         ...data[key],
                         id: key
                     })
                 }
-                return {fetchedMeetups:loadedMeetps}
+                return {fetchedMeetups:loadedMeetps.reverse()}
                 //meetups.setMeetups(loadedMeetps.reverse())
                 //isLoading = false
             })
@@ -43,13 +42,15 @@
 
     export let fetchedMeetups
 
+    let loadedMeetups = []
     let editMode = null
     let editedId = null
     let isLoading = true
     let error = null
     let favsOnly = false
+    let unsubscribe
 
-    $: filteredMeetups = favsOnly ? fetchedMeetups.filter( i => i.isFavourite) : fetchedMeetups
+    $: filteredMeetups = favsOnly ? loadedMeetups.filter( i => i.isFavourite) : loadedMeetups
 
     const dispatch = createEventDispatcher()
 
@@ -58,8 +59,15 @@
     }
 
     onMount( () => {
+        unsubscribe = meetups.subscribe( items => loadedMeetups = items)
         meetups.setMeetups(fetchedMeetups)    
         isLoading = false    
+    })
+
+    onDestroy( () => {
+        if(unsubscribe){
+            unsubscribe()
+        }
     })
 
     const saveMeetup = (event) => {
@@ -75,6 +83,10 @@
     const startEdit = (event) => {
         editMode = 'edit'
         editedId = event.detail
+    }
+
+    const startAdd = () => {
+        editMode = 'edit'
     }
 
     const clearError = () => { error = null }
@@ -122,7 +134,7 @@
 {:else}
     <section id="meetup-controls">
         <MeetupFilter on:select={setFilter}/>
-        <Button  on:click={ startEdit }>New Meetup</Button>
+        <Button  on:click={ startAdd }>New Meetup</Button>
     </section>
 
     {#if filteredMeetups.length === 0}
@@ -140,8 +152,7 @@
                     contact={meetup.contact}
                     address={meetup.address}
                     isFav={meetup.isFavourite}
-                    on:edit
-                    on:showdetails/>
+                    on:edit={startEdit}/>
             </div>
         {/each}
     </section>
